@@ -1,0 +1,26 @@
+# Dependency directories
+node_modules/
+/frontend/node_modules/
+
+# Angular build outputs
+.angular/
+/frontend/.angular/
+dist/
+/frontend/dist/
+
+# Maven build outputs
+target/
+/backend/target/
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Log files
+*.log
+/C:/Users/shubham.saini/.gemini/antigravity-ide/brain/

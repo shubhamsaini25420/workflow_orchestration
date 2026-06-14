@@ -1,0 +1,98 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /
+
+spring:
+  profiles:
+    active: local
+  application:
+    name: floworchestra-backend
+  jackson:
+    default-property-inclusion: non_null
+
+---
+# Local standalone profile
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:h2:mem:flowdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+  data:
+    redis:
+      repositories:
+        enabled: false
+
+# Custom settings for local profile to simulate event routing in memory without actual Kafka/Redis
+floworchestra:
+  engine:
+    mode: standalone # fallback in-memory mode
+  security:
+    jwt-secret: 403f828028bb46505bf794719c8f8b0561e1b12b56411d33118cf94563fcd036
+    jwt-expiration-ms: 86400000
+
+logging:
+  level:
+    root: INFO
+    com.floworchestra: DEBUG
+    org.springframework.security: INFO
+
+---
+# Production Cloud-Ready profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://postgres:5432/floworchestra
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: floworchestra-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+floworchestra:
+  engine:
+    mode: distributed
+  security:
+    jwt-secret: 403f828028bb46505bf794719c8f8b0561e1b12b56411d33118cf94563fcd036
+    jwt-expiration-ms: 86400000
